@@ -3,7 +3,7 @@
 C++ header only game-engine library.
 
 - **the project has not yet release version.**
-    - ** current status is alpha level**
+    - **current status is alpha level**
 
 ## support
 
