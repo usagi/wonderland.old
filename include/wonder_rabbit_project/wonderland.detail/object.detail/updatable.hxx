@@ -14,7 +14,7 @@ namespace wonder_rabbit_project
       {
       public:
         using update_parameter_t = T_update_parameter;
-        auto virtual update(const update_parameter_t& delta_time) -> void = 0;
+        auto virtual update(const update_parameter_t& delta_time) -> void { }
         auto virtual update_priority() const
           -> unsigned { return 0; }
         auto virtual update_enabled() const

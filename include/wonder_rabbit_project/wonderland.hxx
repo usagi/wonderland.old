@@ -5,8 +5,10 @@
 #include <queue>
 #include <memory>
 
-#ifndef EMSCRIPTEN
-#include <future>
+#ifdef EMSCRIPTEN
+  #include <mutex>
+#else
+  #include <future>
 #endif
 
 #ifdef EMSCRIPTEN
@@ -15,7 +17,6 @@
 
 #include <wonder_rabbit_project/log.hxx>
 #include <wonder_rabbit_project/time.hxx>
-#include <wonder_rabbit_project/memory.hxx>
 #include <wonder_rabbit_project/message.hxx>
 
 #include "wonderland.detail/object.hxx"
@@ -27,7 +28,19 @@ namespace wonder_rabbit_project
   {
     
 #ifdef EMSCRIPTEN
-    unsigned wonderland_instance_count = 0;
+    template<class T = void>
+    class wonderland_main_loop_callback_templated_wrapper
+    {
+    public:
+      static std::mutex m;
+      static auto lock() -> void
+      {
+        if(! m.try_lock() )
+          throw std::logic_error("not support yet multiple instancing on emscripten version");
+      }
+      static auto unlock() -> void
+      { m.unlock(); }
+    };
     
     template<class T_wonderland>
     auto wonderland_main_loop_callback(void* wonderland) -> void
@@ -46,14 +59,12 @@ namespace wonder_rabbit_project
 #endif
 
     template
-    < class T_duration = std::chrono::nanoseconds
-    , class T_object   = object::object_t<T_duration>
+    < class T_duration    = std::chrono::nanoseconds
+    , class T_object      = object::object_t<T_duration>
+    , class T_base_object = scene::scene_system_t<scene::scene_t<T_object>>
     >
     class wonderland_t
-      : public memory::enable_shared_from_this_wrap
-          < wonderland_t<T_duration, T_object>
-          , object::object_t<typename T_object::update_parameter_t>
-          >
+      : public T_base_object
     {
       
 #ifdef EMSCRIPTEN
@@ -63,13 +74,9 @@ namespace wonder_rabbit_project
       
     public:
       
-      using type               = wonderland_t<T_duration, T_object>;
+      using type               = wonderland_t<T_duration, T_object, T_base_object>;
       using shared_t           = std::shared_ptr<type>;
-      using base_t             = memory::enable_shared_from_this_wrap
-                                  < wonderland_t<T_duration, T_object>
-                                  , T_object
-                                  >;
-      
+      using base_object_t      = T_base_object;
       using duration_t         = T_duration;
       using object_t           = T_object;
       using object_ptr_t       = typename object_t::shared_t;
@@ -103,7 +110,6 @@ namespace wonder_rabbit_project
       using step_hook_t  = std::future<void>;
 #endif
       using step_hooks_t = std::queue<step_hook_t>;
-      using objects_t    = std::vector<object_ptr_t>;
       using delta_time_t = std::function<duration_t()>;
       
       state_e       _state;
@@ -116,8 +122,6 @@ namespace wonder_rabbit_project
       runner_t      _runner;
       step_hooks_t  _after_step_hooks;
       delta_time_t  _delta_time;
-      
-      objects_t     _objects;
       
       bool          _time_is_fixed;
       double        _time_magnification;
@@ -171,6 +175,8 @@ namespace wonder_rabbit_project
               }
             };
         }
+        
+        throw std::logic_error("unknown step_timing_e value.");
       }
       
       auto after_step_hook() -> void
@@ -266,9 +272,6 @@ namespace wonder_rabbit_project
           _time_magnification = value;
       }
       
-      auto objects() -> objects_t&
-      { return _objects; }
-      
       auto virtual initialize() -> void
       {
         _state = state_e::initializing;
@@ -296,7 +299,7 @@ namespace wonder_rabbit_project
           ;
         constexpr int is_infinite_simulate = 1;
         emscripten_set_main_loop_arg
-        ( wonderland_main_loop_callback<self_t>
+        ( wonderland_main_loop_callback<type>
         , static_cast<void*>(this)
         , fps
         , is_infinite_simulate
@@ -316,7 +319,7 @@ namespace wonder_rabbit_project
       auto logger() -> decltype(log)& { return log; }
       
       wonderland_t()
-        : base_t()
+        : base_object_t()
         , _state(state_e::initializing)
         , _time(0)
         , _before_step_time(0)
@@ -325,20 +328,20 @@ namespace wonder_rabbit_project
         , _time_magnification(1.)
       {
 #ifdef EMSCRIPTEN
-        if(++wonderland_instance_count > 1)
-          throw std::logic_error("cannot support multiple instancing on emscripten version");
+        wonderland_main_loop_callback_templated_wrapper<>::lock();
 #endif
       }
       
-      wonderland_t(const typename object_t::weak_t&  master_)
-        : base_t(master_)
-        , wonderland_t()
-      { }
-      
-      wonderland_t(      typename object_t::weak_t&& master_)
-        : base_t(std::move(master_))
-        , wonderland_t()
-      { }
+      wonderland_t(typename object_t::weak_t&& master_)
+        //, wonderland_t()
+        : base_object_t(std::move(master_))
+        , _state(state_e::initializing)
+        , _time(0)
+        , _before_step_time(0)
+        , _target_step_time(30)
+        , _time_is_fixed(false)
+        , _time_magnification(1.)
+      { master(master_); }
       
       virtual ~wonderland_t()
       {
@@ -361,7 +364,7 @@ namespace wonder_rabbit_project
             ;
         }
 #ifdef EMSCRIPTEN
-        --wonderland_instance_count;
+        wonderland_main_loop_callback_templated_wrapper<>::unlock();
 #endif
       }
       
@@ -375,17 +378,15 @@ namespace wonder_rabbit_project
       auto update(const update_parameter_t& t)
         -> void override
       {
-        log(log_level::debug) << "update: " << t.count();
-        for(auto& object: _objects)
-          object->update(t);
+        log(log_level::debug) << "wonderland update: " << t.count();
+        base_object_t::update(t);
       }
       
       auto render()
         -> void override
       {
-        log(log_level::debug) << "render";
-        for(auto& object: _objects)
-          object->render();
+        log(log_level::debug) << "wonderland render";
+        base_object_t::render();
       }
       
     };

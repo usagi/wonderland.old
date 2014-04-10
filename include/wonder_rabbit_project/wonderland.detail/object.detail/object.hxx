@@ -2,6 +2,7 @@
 
 #include <cstddef>
 #include <memory>
+#include <chrono>
 
 #include "updatable.hxx"
 #include "renderable.hxx"
@@ -10,19 +11,28 @@ namespace wonder_rabbit_project
 {
   namespace wonderland
   {
+    namespace scene
+    {
+      template <class> class scene_t;
+      template <class> class scene_system_t;
+    }
+    
     namespace object
     {
       
       template<class T_update_parameter = std::chrono::nanoseconds>
       class object_t
-        : public memory::enable_shared_from_this_wrap<object_t<T_update_parameter>>
+        : public std::enable_shared_from_this<object_t<T_update_parameter>>
         , public message::messagable_t
         , public updatable_t<T_update_parameter>
         , public renderable_t
       {
+        template <class> friend class scene::scene_t;
+        template <class> friend class scene::scene_system_t;
+        template <class, class, class> friend class wonderland_t;
+        
       public:
         using type               = object_t<T_update_parameter>;
-        using base_t             = memory::enable_shared_from_this_wrap<object_t<T_update_parameter>>;
         
         using update_parameter_t = T_update_parameter;
         
@@ -31,32 +41,48 @@ namespace wonder_rabbit_project
         
       private:
         weak_t _master;
-        
-      protected:
-        auto master(const shared_t& master_)
-          -> void
-        { _master = master_; }
-        
+      
       public:
-        object_t(){ }
-        object_t(const weak_t&  master_): _master(          master_ ) { }
-        object_t(      weak_t&& master_): _master(std::move(master_)) { }
+        object_t()
+        { }
         
-        template<class T, class ... T_params>
-        static auto make_shared(T_params ... params)
+        object_t(weak_t&& master_)
+          : _master( std::move( master_ ) )
+        { }
+        
+        template<class T = type>
+        auto shared_from_master()
           -> std::shared_ptr<T>
         {
-          auto p = std::make_shared<T>(params ...);
-          p->master(p->shared_from_this());
-          return p;
+          auto p = _master.expired()
+                ? std::template enable_shared_from_this<object_t<T_update_parameter>>::shared_from_this()
+                : _master.lock()
+                ;
+          
+          return std::dynamic_pointer_cast<T>(p);
+        }
+        
+        template<class T = type>
+        auto shared_from_master_until()
+          -> std::shared_ptr<T>
+        {
+          shared_t p1;
+          shared_t p2(std::template enable_shared_from_this<object_t<T_update_parameter>>::shared_from_this());
+          
+          do
+          {
+            p1 = p2;
+            p2 = p2->shared_from_master();
+            auto dynamic_p2 = std::dynamic_pointer_cast<T>(p2);
+            if( dynamic_p2 )
+              return dynamic_p2;
+          }
+          while ( p1 != p2 );
+          
+          return std::shared_ptr<T>();
         }
         
       };
-      
-      template<class T, class ... T_params>
-      auto make_shared(T_params ... params)
-        -> std::shared_ptr<T>
-      { return T:: template make_shared<T>(params ...); }
       
     }
   }

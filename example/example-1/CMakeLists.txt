@@ -2,7 +2,10 @@ cmake_minimum_required(VERSION 2.8.10)
 
 project(example-1)
 set(TARGET "example-1")
-set(SOURCE "main.cxx")
+set(SOURCE main.cxx
+  example_world.cxx
+  example_scene_a.cxx
+)
 
 if(CMAKE_CXX_COMPILER MATCHES "/em\\+\\+(-[a-zA-Z0-9.])?$")
 
