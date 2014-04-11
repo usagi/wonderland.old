@@ -354,9 +354,7 @@ namespace wonder_rabbit_project
           , _target_step_time( 30 )
           , _time_is_fixed( false )
           , _time_magnification( 1. )
-        {
-          master( master_ );
-        }
+        { }
 
         virtual ~wonderland_t()
         {
