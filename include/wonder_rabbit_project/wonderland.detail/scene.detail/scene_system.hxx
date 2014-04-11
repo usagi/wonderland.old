@@ -1,6 +1,5 @@
 #pragma once
 
-#include <iostream>
 #include <queue>
 #include <future>
 #include <stack>
@@ -66,28 +65,25 @@ namespace wonder_rabbit_project
 
           auto update( const update_parameter_t& t ) -> void override
           {
-            std::cerr << "scene_system update!\n";
             _scenes.top()->update( t );
           }
 
           auto render() -> void override
           {
-            std::cerr << "scene_system render!\n";
             _scenes.top()->render();
             after_render_hook();
           }
 
           auto push( const shared_scene_t& scene ) -> void
           {
-            std::cerr << "ss->push: " << scene << "(" << scene->shared_from_master() << ")" << "\n";
             if ( _scenes_mutex.try_lock() )
             {
-              _scenes.emplace( /*std::move(*/scene/*)*/ );
+              _scenes.emplace( scene );
               _scenes_mutex.unlock();
             }
             else
               push_after_render_hook
-              ( [this, scene]{ _scenes.emplace( /*std::move(*/scene/*)*/ ); }
+              ( [this, scene]{ _scenes.emplace( scene ); }
             );
           }
 
