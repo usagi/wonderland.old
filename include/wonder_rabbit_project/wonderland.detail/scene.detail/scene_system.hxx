@@ -28,9 +28,9 @@ namespace wonder_rabbit_project
           using update_parameter_t = typename scene_t::object_t::update_parameter_t;
 
         private:
-          using hook_t   = std::future<void>;
-          using hooks_t  = std::queue<hook_t>;
-          using scenes_t = std::stack<shared_scene_t>;
+          using hook_t             = std::future<void>;
+          using hooks_t            = std::queue<hook_t>;
+          using scenes_t           = std::stack<shared_scene_t>;
           using mutex_t            = std::mutex;
 
           hooks_t  _after_render_hooks;
@@ -39,6 +39,7 @@ namespace wonder_rabbit_project
 
           auto after_render_hook() -> void
           {
+            std::lock_guard<_scenes_mutex> l;
             while ( !_after_render_hooks.empty() )
             {
               _after_render_hooks.front().get();
@@ -52,7 +53,6 @@ namespace wonder_rabbit_project
           auto push_after_render_hook( const T& f ) -> void
           { _after_render_hooks.push( std::async( std::launch::deferred, f ) ); }
 
-
         public:
 
           scene_system_t()
@@ -65,12 +65,16 @@ namespace wonder_rabbit_project
 
           auto update( const update_parameter_t& t ) -> void override
           {
+            std::lock_guard<_scenes_mutex> l;
             _scenes.top()->update( t );
           }
 
           auto render() -> void override
           {
-            _scenes.top()->render();
+            {
+              std::lock_guard<_scenes_mutex> l;
+              _scenes.top()->render();
+            }
             after_render_hook();
           }
 
