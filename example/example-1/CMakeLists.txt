@@ -72,7 +72,11 @@ elseif(CMAKE_BUILD_TYPE MATCHES relwithdebinfo)
   message(" * CXX_FLAGS: ${CXX_FLAGS}")
 endif()
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../include)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../include
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../libWRP-log/include
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../libWRP-time/include
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../libWRP-message/include
+)
 
 message(" * target: ${TARGET}")
 message(" * source: ${SOURCE}")
