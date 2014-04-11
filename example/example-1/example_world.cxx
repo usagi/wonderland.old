@@ -9,7 +9,7 @@ namespace example
   {
     // set logger
     using wonder_rabbit_project::log::hook_tie;
-    log.hook( hook_tie( std::cerr ) );
+    logger()->hook( hook_tie( std::cerr ) );
   }
 
   auto example_world_t::initialize() -> void

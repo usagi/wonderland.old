@@ -24,6 +24,12 @@
 
 namespace wonder_rabbit_project
 {
+  namespace log
+  {
+
+    class log_stream_t;
+  }
+
   namespace wonderland
   {
 
@@ -128,6 +134,8 @@ namespace wonder_rabbit_project
         bool          _time_is_fixed;
         double        _time_magnification;
 
+        std::shared_ptr<log::log_t> _logger;
+        
         auto generate_runner() -> runner_t
         {
           switch ( _step_timing )
@@ -197,8 +205,6 @@ namespace wonder_rabbit_project
         }
 
       protected:
-
-        log::log_t log;
 
         template<class T>
         auto push_after_step_hook( T && f ) -> void
@@ -280,7 +286,7 @@ namespace wonder_rabbit_project
           _state = state_e::initializing;
           _time  = duration_t( 0 );
 
-          log.clear();
+          _logger->clear();
 
           _runner     = generate_runner();
 
@@ -320,8 +326,11 @@ namespace wonder_rabbit_project
 
       public:
 
-        auto logger() -> decltype( log )& { return log; }
-
+        auto logger(const std::shared_ptr<log_t>& l) -> void { _logger = l; }
+        auto logger() -> std::shared_ptr<log_t> { return _logger; }
+        
+        auto log(const log_level ll) -> log::log_t::log_stream_t { return (*_logger)(ll); }
+        
         wonderland_t()
           : base_object_t()
           , _state( state_e::initializing )
@@ -330,6 +339,7 @@ namespace wonder_rabbit_project
           , _target_step_time( 30 )
           , _time_is_fixed( false )
           , _time_magnification( 1. )
+          , _logger(new log::log_t())
         {
 #ifdef EMSCRIPTEN
           wonderland_main_loop_callback_templated_wrapper<>::lock();
@@ -337,7 +347,6 @@ namespace wonder_rabbit_project
         }
 
         wonderland_t( typename object_t::weak_t && master_ )
-        //, wonderland_t()
           : base_object_t( std::move( master_ ) )
           , _state( state_e::initializing )
           , _time( 0 )

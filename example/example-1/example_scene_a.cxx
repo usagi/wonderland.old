@@ -9,7 +9,7 @@ namespace example
   -> void
   {
     if ( auto w = shared_from_master_until<example_world_t>() )
-      w -> logger()( level_e::debug )
+      w -> log( level_e::debug )
           << "example_scene_a::update! " << t.count();
     else
       throw std::runtime_error( "（・３・）アルェー" );
@@ -19,7 +19,7 @@ namespace example
   -> void
   {
     if ( auto w = shared_from_master_until<example_world_t>() )
-      w ->logger()( level_e::debug )
+      w ->log( level_e::debug )
           << "example_scene_a::render! ";
   }
 
