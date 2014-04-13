@@ -16,7 +16,7 @@ namespace example
   {
     log( log_level::debug ) << "initializing was started";
 
-    log( log_level::debug ) << "example_worlt this: " << this;
+    log( log_level::debug ) << "example_world this: " << this;
 
     // set step timing
     //step_timing(step_timing_e::non_adjusted);
@@ -66,14 +66,12 @@ namespace example
   -> void
   {
     log( log_level::debug ) << "example_world update: " << dt.count();
-    wonderland_t::update( dt );
   }
 
   auto example_world_t::render()
   -> void
   {
     log( log_level::debug ) << "example_world render";
-    wonderland_t::render();
   }
 
 }

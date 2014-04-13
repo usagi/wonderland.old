@@ -13,6 +13,7 @@ namespace wonder_rabbit_project
   {
     namespace scene
     {
+      class end_of_scene_system: public std::exception { };
 
       template<class T_scene = scene_t<>>
       class scene_system_t
@@ -39,12 +40,20 @@ namespace wonder_rabbit_project
 
           auto after_render_hook() -> void
           {
-            std::lock_guard<_scenes_mutex> l;
+            std::lock_guard<std::mutex> lock(_scenes_mutex);
             while ( !_after_render_hooks.empty() )
             {
               _after_render_hooks.front().get();
               _after_render_hooks.pop();
             }
+          }
+          
+          auto _pop() -> void
+          {
+            _scenes.pop();
+            
+            if( _scenes.empty() )
+              throw end_of_scene_system();
           }
 
         protected:
@@ -63,17 +72,21 @@ namespace wonder_rabbit_project
             : object_t( std::move( master_ ) )
           { }
 
-          auto update( const update_parameter_t& t ) -> void override
-          {
-            std::lock_guard<_scenes_mutex> l;
-            _scenes.top()->update( t );
-          }
-
-          auto render() -> void override
+          auto _update( const update_parameter_t& t ) -> void override
           {
             {
-              std::lock_guard<_scenes_mutex> l;
-              _scenes.top()->render();
+              std::lock_guard<std::mutex> lock(_scenes_mutex);
+              _scenes.top()->_update( t );
+            }
+            object_t::_update(t);
+          }
+
+          auto _render() -> void override
+          {
+            {
+              std::lock_guard<std::mutex> lock(_scenes_mutex);
+              _scenes.top()->_render();
+              object_t::_render();
             }
             after_render_hook();
           }
@@ -92,17 +105,33 @@ namespace wonder_rabbit_project
           }
 
           auto pop() -> void
-          { push_after_render_hook( [this]{ _scenes.pop(); } ); }
+          {
+            if ( _scenes_mutex.try_lock() )
+            {
+              _pop();
+              _scenes_mutex.unlock();
+            }
+            else
+              push_after_render_hook( [this]{ _pop(); } );
+            
+          }
 
           auto displace( shared_scene_t scene ) -> void
           {
-            push_after_render_hook
-            ( [this, scene]
+            if ( _scenes_mutex.try_lock() )
             {
               _scenes.pop();
               _scenes.emplace( std::move( scene ) );
+              _scenes_mutex.unlock();
             }
-            );
+            else
+              push_after_render_hook
+              ( [this, scene]
+                {
+                  _scenes.pop();
+                  _scenes.emplace( std::move( scene ) );
+                }
+              );
           }
 
       };

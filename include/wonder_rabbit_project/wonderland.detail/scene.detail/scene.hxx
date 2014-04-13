@@ -28,13 +28,7 @@ namespace wonder_rabbit_project
           scene_t( typename object_t::weak_t && master_ )
             : object_t( std::move( master_ ) )
           { }
-
-          auto update( const update_parameter_t& t ) -> void override
-          { }
-
-          auto render() -> void override
-          { }
-
+          
       };
 
     }

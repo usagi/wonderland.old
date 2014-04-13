@@ -8,18 +8,24 @@ namespace example
   auto example_scene_a_t::update( const update_parameter_t& t )
   -> void
   {
-    if ( auto w = shared_from_master_until<example_world_t>() )
-      w -> log( level_e::debug )
+    shared_from_master_until<example_world_t>()
+      -> log( level_e::debug )
           << "example_scene_a::update! " << t.count();
-    else
-      throw std::runtime_error( "（・３・）アルェー" );
+    
+    shared_from_master_until<example_world_t>()
+      -> log( level_e::debug )
+        << time().count();
+    
+    if ( time() > std::chrono::seconds(3) )
+      shared_from_master_until<example_world_t::scene_system_t>()
+        -> pop();
   }
 
   auto example_scene_a_t::render()
   -> void
   {
-    if ( auto w = shared_from_master_until<example_world_t>() )
-      w ->log( level_e::debug )
+    shared_from_master_until<example_world_t>()
+      ->log( level_e::debug )
           << "example_scene_a::render! ";
   }
 

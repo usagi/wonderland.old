@@ -53,8 +53,11 @@ namespace wonder_rabbit_project
     {
       auto w = reinterpret_cast<T_wonderland*>( wonderland );
 
-      w->_before_step_time = time::time( w->_runner );
-
+      try
+      { w->_before_step_time = time::time( w->_runner ); }
+      catch(scene::end_of_scene_system)
+      { w->_state = T_wonderland::state_e::ending; }
+      
       if ( w->_state != T_wonderland::state_e::running )
       {
         emscripten_cancel_main_loop();
@@ -121,7 +124,6 @@ namespace wonder_rabbit_project
         using delta_time_t = std::function<duration_t()>;
 
         state_e       _state;
-        duration_t    _time;
         duration_t    _before_step_time;
 
         step_timing_e _step_timing;
@@ -143,8 +145,8 @@ namespace wonder_rabbit_project
             case step_timing_e::non_adjusted:
               return [this]
               {
-                this->update( this->delta_time() );
-                this->render();
+                this->_update( this->delta_time() );
+                this->_render();
                 this->after_step_hook();
               };
             case step_timing_e::adjusted:
@@ -153,8 +155,8 @@ namespace wonder_rabbit_project
                 time::adjust
                 ( [this]
                 {
-                  this->update( this->delta_time() );
-                  this->render();
+                  this->_update( this->delta_time() );
+                  this->_render();
                   this->after_step_hook();
                 }
                 , _target_step_time
@@ -174,8 +176,8 @@ namespace wonder_rabbit_project
                   auto dt = time::adjust
                   ( [this]
                   {
-                    this->update( this->delta_time() );
-                    this->render();
+                    this->_update( this->delta_time() );
+                    this->_render();
                     this->after_step_hook();
                   }
                   , _target_step_time
@@ -284,11 +286,10 @@ namespace wonder_rabbit_project
         auto virtual initialize() -> void
         {
           _state = state_e::initializing;
-          _time  = duration_t( 0 );
 
-          _logger->clear();
+          _logger -> clear();
 
-          _runner     = generate_runner();
+          _runner = generate_runner();
 
           if ( _time_is_fixed )
             _delta_time = [this]{ return this->_target_step_time; };
@@ -315,9 +316,11 @@ namespace wonder_rabbit_project
           );
 #else
           do
-            _before_step_time = time::time( _runner );
-          while ( _state == state_e::running )
-            ;
+            try
+            { _before_step_time = time::time( _runner ); }
+            catch(scene::end_of_scene_system)
+            { _state = state_e::ending; }
+          while ( _state == state_e::running );
 
           log( log_level::debug ) << "to ending";
           _state = state_e::ending;
@@ -334,7 +337,6 @@ namespace wonder_rabbit_project
         wonderland_t()
           : base_object_t()
           , _state( state_e::initializing )
-          , _time( 0 )
           , _before_step_time( 0 )
           , _target_step_time( 30 )
           , _time_is_fixed( false )
@@ -349,7 +351,6 @@ namespace wonder_rabbit_project
         wonderland_t( typename object_t::weak_t && master_ )
           : base_object_t( std::move( master_ ) )
           , _state( state_e::initializing )
-          , _time( 0 )
           , _before_step_time( 0 )
           , _target_step_time( 30 )
           , _time_is_fixed( false )
@@ -394,19 +395,19 @@ namespace wonder_rabbit_project
           initialize();
           run();
         }
-
-        auto update( const update_parameter_t& t )
+    protected:
+        auto _update( const update_parameter_t& t )
         -> void override
         {
           log( log_level::debug ) << "wonderland update: " << t.count();
-          base_object_t::update( t );
+          base_object_t::_update( t );
         }
 
-        auto render()
+        auto _render()
         -> void override
         {
           log( log_level::debug ) << "wonderland render";
-          base_object_t::render();
+          base_object_t::_render();
         }
 
     };

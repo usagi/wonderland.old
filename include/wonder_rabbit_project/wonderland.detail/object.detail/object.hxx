@@ -3,6 +3,9 @@
 #include <cstddef>
 #include <memory>
 #include <chrono>
+#include <forward_list>
+
+#include <wonder_rabbit_project/message.hxx>
 
 #include "updatable.hxx"
 #include "renderable.hxx"
@@ -11,6 +14,8 @@ namespace wonder_rabbit_project
 {
   namespace wonderland
   {
+    template <class, class, class> class wonderland_t;
+    
     namespace scene
     {
       template <class> class scene_t;
@@ -40,8 +45,23 @@ namespace wonder_rabbit_project
           using weak_t             = std::weak_ptr<type>;
 
         private:
-          weak_t _master;
-
+          weak_t             _master;
+          update_parameter_t _time;
+          
+        protected:
+          virtual auto _update(const update_parameter_t& dt)
+          -> void
+          {
+            _time += dt;
+            this->update(dt);
+          }
+          
+          virtual auto _render()
+          -> void
+          {
+            this->render();
+          }
+          
         public:
           object_t()
           { }
@@ -65,7 +85,7 @@ namespace wonder_rabbit_project
           template<class T = type>
           auto shared_from_master_until()
           -> std::shared_ptr<T>
-        {
+          {
             shared_t p1;
             shared_t p2( std::template enable_shared_from_this<object_t<T_update_parameter>>::shared_from_this() );
 
@@ -81,7 +101,11 @@ namespace wonder_rabbit_project
 
             return std::shared_ptr<T>();
           }
-
+          
+          auto time()
+          -> update_parameter_t
+          { return _time; }
+          
       };
 
     }
