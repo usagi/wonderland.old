@@ -90,6 +90,7 @@ namespace wonder_rabbit_project
         using base_object_t      = T_base_object;
         using duration_t         = T_duration;
         using object_t           = T_object;
+        using subsystem_t        = T_subsystem;
         using object_ptr_t       = typename object_t::shared_t;
         using scene_t            = scene::scene_t<object_t>;
         using scene_ptr_t        = typename scene_t::shared_t;
@@ -140,6 +141,8 @@ namespace wonder_rabbit_project
 
         std::shared_ptr<log::log_t> _logger;
         
+        std::shared_ptr<subsystem_t> _subsystem;
+        
         auto generate_runner() -> runner_t
         {
           switch ( _step_timing )
@@ -147,9 +150,14 @@ namespace wonder_rabbit_project
             case step_timing_e::non_adjusted:
               return [this]
               {
+                _subsystem -> before_update();
                 this->_update( this->delta_time() );
+                _subsystem -> after_update();
+                
+                _subsystem -> before_render();
                 this->_render();
                 this->after_step_hook();
+                _subsystem -> after_render();
               };
             case step_timing_e::adjusted:
               return [this]
@@ -157,9 +165,14 @@ namespace wonder_rabbit_project
                 time::adjust
                 ( [this]
                 {
+                  _subsystem -> before_update();
                   this->_update( this->delta_time() );
+                  _subsystem -> after_update();
+                  
+                  _subsystem -> before_render();
                   this->_render();
                   this->after_step_hook();
+                  _subsystem -> after_render();
                 }
                 , _target_step_time
                 );
@@ -178,9 +191,14 @@ namespace wonder_rabbit_project
                   auto dt = time::adjust
                   ( [this]
                   {
+                    _subsystem -> before_update();
                     this->_update( this->delta_time() );
+                    _subsystem -> after_update();
+                    
+                    _subsystem -> before_render();
                     this->_render();
                     this->after_step_hook();
+                    _subsystem -> after_render();
                   }
                   , _target_step_time
                   );
@@ -285,7 +303,9 @@ namespace wonder_rabbit_project
             _time_magnification = value;
         }
 
-        auto virtual initialize() -> void
+        auto virtual initialize
+        ( typename subsystem_t::initialize_params_t&& subsystem_initialize_params )
+          -> void
         {
           _state = state_e::initializing;
 
@@ -297,7 +317,12 @@ namespace wonder_rabbit_project
             _delta_time = [this]{ return this->_target_step_time; };
           else
             _delta_time = [this]{ return this->_before_step_time; };
+          
+          _subsystem -> initialize( std::move(subsystem_initialize_params) );
         }
+        
+        auto virtual initialize() -> void
+        { initialize( _subsystem -> default_initialize_params() ); }
 
         auto virtual run() -> void
         {
@@ -344,6 +369,7 @@ namespace wonder_rabbit_project
           , _time_is_fixed( false )
           , _time_magnification( 1. )
           , _logger(new log::log_t())
+          , _subsystem(std::make_shared<subsystem_t>())
         {
 #ifdef EMSCRIPTEN
           wonderland_main_loop_callback_templated_wrapper<>::lock();
@@ -357,6 +383,8 @@ namespace wonder_rabbit_project
           , _target_step_time( 30 )
           , _time_is_fixed( false )
           , _time_magnification( 1. )
+          , _logger(new log::log_t())
+          , _subsystem(std::make_shared<subsystem_t>())
         { }
 
         virtual ~wonderland_t()
@@ -397,6 +425,11 @@ namespace wonder_rabbit_project
           initialize();
           run();
         }
+        
+        auto virtual subsystem()
+          -> std::shared_ptr<subsystem::subsystem_base_t>
+        { return _subsystem -> shared_from_this(); }
+        
     protected:
         auto _update( const update_parameter_t& t )
         -> void override
