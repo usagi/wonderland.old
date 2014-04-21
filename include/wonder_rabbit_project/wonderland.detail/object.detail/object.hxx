@@ -14,7 +14,7 @@ namespace wonder_rabbit_project
 {
   namespace wonderland
   {
-    template <class, class, class> class wonderland_t;
+    template <class, class, class, class> class wonderland_t;
     
     namespace scene
     {
@@ -34,7 +34,7 @@ namespace wonder_rabbit_project
       {
           template <class> friend class scene::scene_t;
           template <class> friend class scene::scene_system_t;
-          template <class, class, class> friend class wonderland_t;
+          template <class, class, class, class> friend class wonderland_t;
 
         public:
           using type               = object_t<T_update_parameter>;

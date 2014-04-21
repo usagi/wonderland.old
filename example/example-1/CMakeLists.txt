@@ -11,6 +11,10 @@ if(CMAKE_CXX_COMPILER MATCHES "/em\\+\\+(-[a-zA-Z0-9.])?$")
 
   message(" * C++ compiler: Emscripten")
   
+  if(NOT SUBSYSTEM)
+    set(SUBSYSTEM GLFW2)
+  endif()
+
   set(CMAKE_CXX_COMPILER_ID "Emscripten")
   
   set(CMAKE_CXX_FLAGS "-s ALLOW_MEMORY_GROWTH=1 ${CMAKE_CXX_FLAGS}")
@@ -27,6 +31,10 @@ if(CMAKE_CXX_COMPILER MATCHES "/em\\+\\+(-[a-zA-Z0-9.])?$")
 else()
 
   if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    
+    if(NOT SUBSYSTEM)
+      set(SUBSYSTEM GLFW3)
+    endif()
     
     message(" * C++ compiler: Clang")
     
@@ -58,6 +66,18 @@ else()
 
 endif()
 
+message(" * SUBSYSTEM: ${SUBSYSTEM}")
+
+if(SUBSYSTEM MATCHES GLFW3)
+  set(CMAKE_CXX_FLAGS "-DWRP_WONDERLAND_SUBSYSTEM_GLFW3 ${CMAKE_CXX_FLAGS}")
+elseif(SUBSYSTEM MATCHES GLFW2)
+  set(CMAKE_CXX_FLAGS "-DWRP_WONDERLAND_SUBSYSTEM_GLFW2 ${CMAKE_CXX_FLAGS}")
+elseif(SUBSYSTEM MATCHES SDL2)
+  set(CMAKE_CXX_FLAGS "-DWRP_WONDERLAND_SUBSYSTEM_SDL2 ${CMAKE_CXX_FLAGS}")
+elseif(SUBSYSTEM MATCHES SDL1)
+  set(CMAKE_CXX_FLAGS "-DWRP_WONDERLAND_SUBSYSTEM_SDL1 ${CMAKE_CXX_FLAGS}")
+endif()
+
 if(CMAKE_BUILD_TYPE MATCHES release)
   message(" * build type: release")
   set(CXX_FLAGS "${CMAKE_CXX_FLAGS}${CMAKE_CXX_FLAGS_RELEASE}")
@@ -76,6 +96,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../include
   ${CMAKE_CURRENT_SOURCE_DIR}/../../libWRP-log/include
   ${CMAKE_CURRENT_SOURCE_DIR}/../../libWRP-time/include
   ${CMAKE_CURRENT_SOURCE_DIR}/../../libWRP-message/include
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../wonderland.subsystem/include
 )
 
 message(" * target: ${TARGET}")

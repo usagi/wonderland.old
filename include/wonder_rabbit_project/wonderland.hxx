@@ -18,6 +18,7 @@
 #include <wonder_rabbit_project/log.hxx>
 #include <wonder_rabbit_project/time.hxx>
 #include <wonder_rabbit_project/message.hxx>
+#include <wonder_rabbit_project/wonderland.subsystem.hxx>
 
 #include "wonderland.detail/object.hxx"
 #include "wonderland.detail/scene.hxx"
@@ -71,6 +72,7 @@ namespace wonder_rabbit_project
     < class T_duration    = std::chrono::nanoseconds
     , class T_object      = object::object_t<T_duration>
     , class T_base_object = scene::scene_system_t<scene::scene_t<T_object>>
+    , class T_subsystem   = subsystem::subsystem_t
     >
     class wonderland_t
       : public T_base_object
