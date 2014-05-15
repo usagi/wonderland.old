@@ -10,3 +10,9 @@
 [submodule "wonderland.subsystem"]
 	path = wonderland.subsystem
 	url = git@github.com:usagi/wonderland.subsystem.git
+[submodule "wonderland.renderer"]
+	path = wonderland.renderer
+	url = git@github.com:usagi/wonderland.renderer.git
+[submodule "wonderland.storage"]
+	path = wonderland.storage
+	url = git@github.com:usagi/wonderland.storage.git
