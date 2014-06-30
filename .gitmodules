@@ -5,7 +5,7 @@
 	path = wonderland.log
 	url = git@github.com:usagi/wonderland.log.git
 [submodule "libWRP-message"]
-	path = libWRP-message
+	path = wonderland.message
 	url = git@github.com:usagi/libWRP-message.git
 [submodule "wonderland.subsystem"]
 	path = wonderland.subsystem
