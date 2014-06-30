@@ -16,7 +16,7 @@
 #endif
 
 #include <wonder_rabbit_project/wonderland/log.hxx>
-#include <wonder_rabbit_project/time.hxx>
+#include <wonder_rabbit_project/wonderland/time.hxx>
 #include <wonder_rabbit_project/message.hxx>
 #include <wonder_rabbit_project/wonderland.subsystem.hxx>
 

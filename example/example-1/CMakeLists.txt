@@ -94,7 +94,7 @@ endif()
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../include
   ${CMAKE_CURRENT_SOURCE_DIR}/../../wonderland.log/include
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../libWRP-time/include
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../wonderland.time/include
   ${CMAKE_CURRENT_SOURCE_DIR}/../../libWRP-message/include
   ${CMAKE_CURRENT_SOURCE_DIR}/../../wonderland.subsystem/include
 )
