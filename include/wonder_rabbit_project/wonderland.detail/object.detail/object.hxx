@@ -28,9 +28,9 @@ namespace wonder_rabbit_project
       template<class T_update_parameter = std::chrono::nanoseconds>
       class object_t
         : public std::enable_shared_from_this<object_t<T_update_parameter>>
-            , public message::messagable_t
-            , public updatable_t<T_update_parameter>
-            , public renderable_t
+        , public message::messagable_t
+        , public updatable_t<T_update_parameter>
+        , public renderable_t
       {
           template <class> friend class scene::scene_t;
           template <class> friend class scene::scene_system_t;

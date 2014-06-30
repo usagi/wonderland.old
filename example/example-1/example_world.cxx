@@ -7,16 +7,13 @@ namespace example
 {
   example_world_t::example_world_t()
   {
-    // set logger
-    using wonder_rabbit_project::log::hook_tie;
-    logger()->hook( hook_tie( std::cerr ) );
   }
 
   auto example_world_t::initialize() -> void
   {
-    log( log_level::debug ) << "initializing was started";
+    LOGD << "initializing was started";
 
-    log( log_level::debug ) << "example_world this: " << this;
+    LOGD << "example_world this: " << this;
 
     // set step timing
     //step_timing(step_timing_e::non_adjusted);
@@ -42,13 +39,13 @@ namespace example
     //log(log_level::debug) << "scene system is generated.";
 
     auto scene_a = std::make_shared<example_scene_a_t>( shared_from_this() );
-    log( log_level::debug ) << "scene-A is generated      : " << scene_a << "(" << shared_from_this() << ")";
-    log( log_level::debug ) << "scene-A shared_from_this  : " << scene_a->shared_from_this();
-    log( log_level::debug ) << "scene-A shared_from_master: " << scene_a->shared_from_master();
+    LOGD << "scene-A is generated      : " << scene_a << "(" << shared_from_this() << ")";
+    LOGD << "scene-A shared_from_this  : " << scene_a->shared_from_this();
+    LOGD << "scene-A shared_from_master: " << scene_a->shared_from_master();
 
     //scene_system ->
     push( scene_a );
-    log( log_level::debug ) << "scene-A pushed to scene system.";
+    LOGD << "scene-A pushed to scene system.";
 
     //generate_and_push_scene_system();
     //auto ss = generate_and_push_scene_system();
@@ -57,7 +54,7 @@ namespace example
     // push the first scene
     //;
 
-    log( log_level::debug ) << "initializing will done.";
+    LOGD << "initializing will done.";
 
     base_t::initialize();
   }
@@ -65,13 +62,13 @@ namespace example
   auto example_world_t::update( const update_parameter_t& dt )
   -> void
   {
-    log( log_level::debug ) << "example_world update: " << dt.count();
+    LOGD << "example_world update: " << dt.count();
   }
 
   auto example_world_t::render()
   -> void
   {
-    log( log_level::debug ) << "example_world render";
+    LOGD << "example_world render";
   }
 
 }

@@ -23,7 +23,7 @@ catch
   constexpr auto r = 2;
   std::ostringstream ss;
   ss << "unrecoverable exception(abort return " << r << "): " << e.what();
-  example_world->log( wonder_rabbit_project::log::level_e::fatal ) << ss.str();
+  LOGF << ss.str();
   std::cerr << ss.str() << "\n";
   return r;
 }
@@ -33,7 +33,7 @@ catch
   constexpr auto r = 1;
   std::ostringstream ss;
   ss << "unknown unrecoverable exception(abort return " << r << ")";
-  example_world->log( wonder_rabbit_project::log::level_e::fatal ) << ss.str();
+  LOGF << ss.str();
   std::cerr << ss.str() << "\n";
   return r;
 }

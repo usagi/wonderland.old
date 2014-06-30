@@ -15,7 +15,7 @@
 #include <emscripten/emscripten.h>
 #endif
 
-#include <wonder_rabbit_project/log.hxx>
+#include <wonder_rabbit_project/wonderland/log.hxx>
 #include <wonder_rabbit_project/time.hxx>
 #include <wonder_rabbit_project/message.hxx>
 #include <wonder_rabbit_project/wonderland.subsystem.hxx>
@@ -97,9 +97,6 @@ namespace wonder_rabbit_project
         using scene_system_t     = scene::scene_system_t<scene_t>;
         using scene_system_ptr_t = typename scene_system_t::shared_t;
         using update_parameter_t = typename object_t::update_parameter_t;
-
-        using log_t      = log::log_t;
-        using log_level  = log::level_e;
 
         enum class state_e
         {
@@ -184,7 +181,7 @@ namespace wonder_rabbit_project
                 if ( dt_bank->count() < 0 )
                 {
                   *dt_bank += _target_step_time;
-                  log( log_level::warn ) << "skipped a step.";
+                  LOGW << "skipped a step.";
                 }
                 else
                 {
@@ -216,7 +213,7 @@ namespace wonder_rabbit_project
         {
           while ( !_after_step_hooks.empty() )
           {
-            log( log_level::debug ) << _after_step_hooks.size();
+            LOGD << _after_step_hooks.size();
 #ifdef EMSCRIPTEN
             _after_step_hooks.front()();
 #else
@@ -309,8 +306,6 @@ namespace wonder_rabbit_project
         {
           _state = state_e::initializing;
 
-          _logger -> clear();
-
           _runner = generate_runner();
 
           if ( _time_is_fixed )
@@ -326,7 +321,7 @@ namespace wonder_rabbit_project
 
         auto virtual run() -> void
         {
-          log( log_level::debug ) << "to runing";
+          LOGD << "to runing";
           _state = state_e::running;
 
 #ifdef EMSCRIPTEN
@@ -349,18 +344,13 @@ namespace wonder_rabbit_project
             { _state = state_e::ending; }
           while ( _state == state_e::running );
 
-          log( log_level::debug ) << "to ending";
+          LOGD << "to ending";
           _state = state_e::ending;
 #endif
         }
 
       public:
 
-        auto logger(const std::shared_ptr<log_t>& l) -> void { _logger = l; }
-        auto logger() -> std::shared_ptr<log_t> { return _logger; }
-        
-        auto log(const log_level ll) -> log::log_t::log_stream_t { return (*_logger)(ll); }
-        
         wonderland_t()
           : base_object_t()
           , _state( state_e::initializing )
@@ -368,7 +358,6 @@ namespace wonder_rabbit_project
           , _target_step_time( 30 )
           , _time_is_fixed( false )
           , _time_magnification( 1. )
-          , _logger(new log::log_t())
           , _subsystem(std::make_shared<subsystem_t>())
         {
 #ifdef EMSCRIPTEN
@@ -383,7 +372,6 @@ namespace wonder_rabbit_project
           , _target_step_time( 30 )
           , _time_is_fixed( false )
           , _time_magnification( 1. )
-          , _logger(new log::log_t())
           , _subsystem(std::make_shared<subsystem_t>())
         { }
 
@@ -409,10 +397,9 @@ namespace wonder_rabbit_project
               }
             };
 
-            log( log::level_e::fatal )
-                << "wonderland_t(" << this << ") to destruct emmergency."
-                " current state is [" << to_string( _state ) << "]."
-                ;
+            LOGF << "wonderland_t(" << this << ") to destruct emmergency."
+                    " current state is [" << to_string( _state ) << "]."
+                 ;
           }
 #ifdef EMSCRIPTEN
           wonderland_main_loop_callback_templated_wrapper<>::unlock();
@@ -434,14 +421,14 @@ namespace wonder_rabbit_project
         auto _update( const update_parameter_t& t )
         -> void override
         {
-          log( log_level::debug ) << "wonderland update: " << t.count();
+          LOGD << "wonderland update: " << t.count();
           base_object_t::_update( t );
         }
 
         auto _render()
         -> void override
         {
-          log( log_level::debug ) << "wonderland render";
+          LOGD << "wonderland render";
           base_object_t::_render();
         }
 

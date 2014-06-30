@@ -1,8 +1,8 @@
 [submodule "libWRP-time"]
 	path = libWRP-time
 	url = git@github.com:usagi/libWRP-time.git
-[submodule "libWRP-log"]
-	path = libWRP-log
+[submodule "wonderland.log"]
+	path = wonderland.log
 	url = git@github.com:usagi/libWRP-log.git
 [submodule "libWRP-message"]
 	path = libWRP-message

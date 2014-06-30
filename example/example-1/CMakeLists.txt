@@ -30,11 +30,11 @@ if(CMAKE_CXX_COMPILER MATCHES "/em\\+\\+(-[a-zA-Z0-9.])?$")
 
 else()
 
+  if(NOT SUBSYSTEM)
+    set(SUBSYSTEM GLFW3)
+  endif()
+  
   if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-    
-    if(NOT SUBSYSTEM)
-      set(SUBSYSTEM GLFW3)
-    endif()
     
     message(" * C++ compiler: Clang")
     
@@ -93,7 +93,7 @@ elseif(CMAKE_BUILD_TYPE MATCHES relwithdebinfo)
 endif()
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../include
-  ${CMAKE_CURRENT_SOURCE_DIR}/../../libWRP-log/include
+  ${CMAKE_CURRENT_SOURCE_DIR}/../../wonderland.log/include
   ${CMAKE_CURRENT_SOURCE_DIR}/../../libWRP-time/include
   ${CMAKE_CURRENT_SOURCE_DIR}/../../libWRP-message/include
   ${CMAKE_CURRENT_SOURCE_DIR}/../../wonderland.subsystem/include
